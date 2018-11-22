@@ -7,14 +7,14 @@ Created on 22 11 2018
 from PyQt5.QAxContainer import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QObject
-import os, sys
+import sys
 
 TITLE = "CallX Example"
 TrueConfCallX_Class = '{27EF4BA2-4500-4839-B88A-F2F4744FE56A}'
 
 SERVER = '' # empty - connect to TrueConf Online cloud
-USER = '125000'
-PASSWORD = '125000'
+USER = '<trueconf id>'
+PASSWORD = '<password>'
 
 class CallXWindow(QWidget):
 
@@ -76,7 +76,10 @@ class ActiveXExtend(QObject):
 
     def _OnXLoginError(self, errorCode):
         print("**receive OnXLoginError")
-        print('Login error. Code: {}'.format(errorCode))
+        if errorCode == 8:
+            print('Support for SDK Applications is not enabled on this server')
+        else:
+            print('Login error. Code: {}'.format(errorCode))
 # end of class ActiveXExtend(QObject):
 
 

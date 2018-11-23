@@ -1,4 +1,4 @@
-# Using TrueConf SDK for Windows. On Python 3.6
+# Usage example of the TrueConf SDK for Windows on Python 3.6
 
 # Install PyQt5
 > pip install pyqt5

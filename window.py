@@ -27,7 +27,6 @@ class KioskWidget(QWidget):
         self.move(100, 100)  
         self.resize(800, 600)
         self.setStyleSheet("background-color:black;");
-        self.showMaximized()
         # layout
         self.layout = QHBoxLayout(self)
         self.setLayout(self.layout)

@@ -3,17 +3,17 @@
 # Install PyQt5
 > pip install pyqt5
 
-# In source code
+# How to run
 
-Specify constants in **callx.py**
-1. SERVER
-1. USER
-1. PASSWORD
+## screen_capture.py 💻
+Demostration of the screen capture
 
-```python
-...
-SERVER = '' # empty - connect to TrueConf Online cloud
-USER = '<trueconf id>'
-PASSWORD = '<password>'
-...
+**Command:**
+
+python screen_capture.py -s *SERVER_IP* -u *TRUECONF_ID* -p *PASSWORD*
+
+**Example:** ✔
 ```
+python screen_capture.py -s "192.168.62.157" -u "1" -p "12345"
+```
+

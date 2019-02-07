@@ -238,7 +238,7 @@ class CallXWidget(QObject):
 
     @eventMarked    
     def OnInviteReceived(self, eventDetails):
-        # Принимаем звонок
+        # Accept any calls
         self.ocx.accept()
 
     @eventMarked    

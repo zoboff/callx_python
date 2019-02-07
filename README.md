@@ -12,8 +12,14 @@ Demostration of the screen capture
 
 python screen_capture.py -s *SERVER_IP* -u *TRUECONF_ID* -p *PASSWORD*
 
-**Example:** ✔
+**Example:**
 ```
 python screen_capture.py -s "192.168.62.157" -u "1" -p "12345"
 ```
 
+## get_devices.py
+Output list of devices on console: cams, mics and speakers
+
+**Command:**
+
+python get_devices.py

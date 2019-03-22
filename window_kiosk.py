@@ -32,7 +32,7 @@ class KioskWidget(QWidget):
         self.layout = QHBoxLayout(self)
         self.setLayout(self.layout)
         # CallX
-        self.callx_widget = CallXWidget(self, self.server, self.user, self.password, debug_mode=False)
+        self.callx_widget = CallXWidget(self, self.server, self.user, self.password, debug_mode=True)
         self.layout.addWidget(self.callx_widget.ocx)
 
 # end of class CallXWindow(QWidget)

@@ -52,7 +52,7 @@ class CallXWidget(QObject):
     startComplited = pyqtSignal()
 
     def __init__(self, view, server: str, user: str, password: str, camera_index: int = 0, 
-                 debug_mode=False):
+                 debug_mode=False, auto_accept=True):
         super().__init__()
 
         self.view = view
@@ -61,6 +61,7 @@ class CallXWidget(QObject):
         self.user = user
         self.password = password
         self.camera_index = camera_index
+        self.auto_accept = auto_accept
 
         # текущее состояние
         self.state = State.Unknown
@@ -222,6 +223,7 @@ class CallXWidget(QObject):
     
     @eventMarked    
     def OnXAfterStart(self):
+        self.ocx.XSetCameraByIndex(self.camera_index)
         # соединение с сервером
         self.ocx.connectToServer(self.server)
         # signal
@@ -239,7 +241,8 @@ class CallXWidget(QObject):
     @eventMarked    
     def OnInviteReceived(self, eventDetails):
         # Accept any calls
-        self.ocx.accept()
+        if self.auto_accept:
+            self.ocx.accept()
 
     @eventMarked    
     def OnXError(self, errorCode, errorMsg):

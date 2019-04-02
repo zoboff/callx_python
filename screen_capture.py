@@ -8,7 +8,6 @@ from callx import State
 
 # 
 CAPTURED_SCREEN = '1'
-OTHER_USER_ID = '3@ruj2m.trueconf.name'
 
 # Title
 TITLE = "CallX Python Example: Screen capture"
@@ -24,14 +23,11 @@ class MyApp(QApplication):
     # ============================================================================================
     def onStartComplited(self):
         self.MainWindow.callx_widget.ocx.startScreenCapture(CAPTURED_SCREEN)
-        self.MainWindow.callx_widget.ocx.XSetCameraByIndex(0)
         self.MainWindow.callx_widget.ocx.XSelectMicByIndex(0)
         self.MainWindow.callx_widget.ocx.XSelectSpeakerByIndex(0)
 
     def onStateChanged(self, prev_state, new_state):
-        if prev_state == State.Login and new_state == State.Normal:
-            print('** Start Screen Capture')
-            self.MainWindow.callx_widget.ocx.call(OTHER_USER_ID)
+        pass
 
 
 if __name__ == '__main__':
@@ -43,7 +39,7 @@ if __name__ == '__main__':
     app = MyApp(sys.argv)
     # Window
     app.MainWindow = window_kiosk.KioskWidget(TITLE, args.server, args.user, args.password)
-    # connect to signal
+    # connect to signals
     app.MainWindow.callx_widget.startComplited.connect(app.onStartComplited)
     app.MainWindow.callx_widget.stateChanged.connect(app.onStateChanged)    
 

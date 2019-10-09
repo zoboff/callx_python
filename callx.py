@@ -9,6 +9,7 @@ from PyQt5.Qt import QVideoWidget, QUrl
 from enum import Enum
 from functools import wraps
 from pprint import pprint
+from PyQt5 import QtWidgets
 
 # GUID ActiveX компонента
 TrueConfCallX_Class = '{27EF4BA2-4500-4839-B88A-F2F4744FE56A}'
@@ -37,8 +38,10 @@ def eventMarked(func):
     def wrapper(self, *args, **kwargs):
         if self.debug_mode:
             print('** {}'.format(func.__name__))
+            self.onEvent.emit(func.__name__)
             for arg in args:
                 print('*** {}'.format(cut80symbols(arg)))
+                self.onEventArg.emit(func.__name__, arg)
 
         return func(self, *args, **kwargs)
 
@@ -50,6 +53,9 @@ class CallXWidget(QObject):
     stateChanged = pyqtSignal(object, object)
     IncomingChatMessage = pyqtSignal(object, object, object, object)
     startComplited = pyqtSignal()
+    # events debug logging
+    onEvent = pyqtSignal(object)
+    onEventArg = pyqtSignal(object, object)
 
     def __init__(self, view, server: str, user: str, password: str, camera_index: int = 0, 
                  debug_mode=False, auto_accept=True):
@@ -74,7 +80,7 @@ class CallXWidget(QObject):
         self.ocx = QAxWidget(TrueConfCallX_Class)
 
         # =====================================================================
-        # подключаем некоторые события ActiveX компонента CallX
+        # подключаем все события ActiveX компонента CallX
         # =====================================================================
         # Нотификация о различных событиях
         # здесь же проверим, установлен ли в системе CallX
@@ -217,7 +223,7 @@ class CallXWidget(QObject):
     # =====================================================================
     # Events
     # =====================================================================
-    #@eventMarked
+    @eventMarked
     def OnXNotify(self, data):
         pass
     

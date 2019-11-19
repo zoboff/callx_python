@@ -10,6 +10,7 @@ from enum import Enum
 from functools import wraps
 from pprint import pprint
 from PyQt5 import QtWidgets
+import json
 
 # GUID ActiveX компонента
 TrueConfCallX_Class = '{27EF4BA2-4500-4839-B88A-F2F4744FE56A}'
@@ -24,6 +25,11 @@ class State(Enum):
     Conference = 5
     Close = 6
 # end of class State(Enum)
+
+class ConferenceParticipantMovement():
+    In = 'newParticipantInConference'
+    Out = 'participantLeftConference'
+# end of class ConferenceParticipantMovement(Enum)
 
 # cut a long string
 def cut80symbols(data: str):
@@ -50,12 +56,16 @@ def eventMarked(func):
 # класс контейнер для ActiveX
 class CallXWidget(QObject):
     # Signals
-    stateChanged = pyqtSignal(object, object)
+    stateChanged = pyqtSignal(object, object, object)
     IncomingChatMessage = pyqtSignal(object, object, object, object)
     startComplited = pyqtSignal()
+    onAbookUpdate = pyqtSignal(object)
+    onUpdateParticipantList = pyqtSignal(object, object, object)
     # events debug logging
     onEvent = pyqtSignal(object)
     onEventArg = pyqtSignal(object, object)
+    # properties
+    participantList = set() # list of conference users
 
     def __init__(self, view, server: str, user: str, password: str, camera_index: int = 0, 
                  debug_mode=False, auto_accept=True):
@@ -87,7 +97,9 @@ class CallXWidget(QObject):
         try:
             self.ocx.OnXNotify[str].connect(self.OnXNotify)
         except AttributeError as attrError:
-            print("\nTrueConf SDK for Windows not installed.\n")
+            print("\n*******************************************")
+            print("\nTrueConf SDK for Windows is not installed.")
+            print("\n*******************************************\n\n")
             raise 
         # Событие № 1 по очередности обработки: сигнализирует об окончании инициализации компонента
         # это событие говорит о готовности CallX к работе
@@ -223,21 +235,25 @@ class CallXWidget(QObject):
     # =====================================================================
     # Events
     # =====================================================================
-    @eventMarked
+    #@eventMarked
     def OnXNotify(self, data):
         pass
     
     @eventMarked    
     def OnXAfterStart(self):
-        self.ocx.XSetCameraByIndex(self.camera_index)
-        # соединение с сервером
-        self.ocx.connectToServer(self.server)
         # signal
         self.startComplited.emit()
 
+        self.ocx.XSetCameraByIndex(self.camera_index)
+        # соединение с сервером
+        self.ocx.connectToServer(self.server)
+
     @eventMarked    
     def OnServerConnected(self, eventDetails):
-        # Авторизация
+        # Login in
+        if self.debug_mode:
+            print('Login in: "{}", "{}"...'.format(self.user, '********'))
+
         self.ocx.login(self.user, self.password)
 
     @eventMarked    
@@ -271,9 +287,17 @@ class CallXWidget(QObject):
         try:
             self.state = State(newState)
             self.prev_state = State(prevState)
-            self.stateChanged.emit(State(prevState), State(newState))
+            self.stateChanged.emit(self, State(prevState), State(newState))
             if State(newState) == State.Normal:
-                self.ocx.getContactDetails(self.user) 
+                self.ocx.getContactDetails(self.user)
+
+            # Participants List
+            if State(newState) == State.Conference:
+                self.participantList.clear()
+                self.participantList.add(self.user)
+            else:
+                self.participantList.clear()
+
         except ValueError:
             pass
 
@@ -288,7 +312,7 @@ class CallXWidget(QObject):
 
     @eventMarked
     def OnAbookUpdate(self, eventDetails):
-        pass
+        self.onAbookUpdate.emit(eventDetails)
 
     @eventMarked
     def OnAppUpdateAvailable(self, eventDetails):
@@ -372,7 +396,12 @@ class CallXWidget(QObject):
 
     @eventMarked
     def OnRequestInviteReceived(self, eventDetails):
-        pass
+        # Accept any calls
+        if self.auto_accept:
+            data = json.loads(eventDetails)
+            user = data['peerId']
+            # Accept
+            self.ocx.acceptPeer(user)
 
     @eventMarked
     def OnRoleChanged(self, eventDetails):
@@ -412,7 +441,16 @@ class CallXWidget(QObject):
 
     @eventMarked
     def OnUpdateParticipantList(self, eventDetails):
-        pass
+        data = json.loads(eventDetails)
+        if data['event'] == ConferenceParticipantMovement.In:
+            user = data['peerId']
+            self.participantList.add(user)
+        elif data['event'] == ConferenceParticipantMovement.Out:
+            user = data['peerId']
+            if user in self.participantList:
+                self.participantList.remove(user)
+        
+        self.onUpdateParticipantList.emit(self, self.user, eventDetails)
 
     @eventMarked
     def OnRestrictionsChanged(self, eventDetails):

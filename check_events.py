@@ -10,14 +10,8 @@ from callx import CallXWidget, State
 import os.path
 import argparse
 import json
-
-# ================================================================
-# Required variables: server IP, user_id (TrueConf ID), password
-# ================================================================
-SERVER = '' # server.name URL or server IP
-USER = '<trueconf id>'
-PASSWORD = '<password>'
-# ================================================================
+import time
+import config
 
 # Title
 TITLE = "CallX Python Example: Check CallX Events"
@@ -137,7 +131,7 @@ class KioskWidget(QWidget):
         self.layout = QHBoxLayout(self)
         self.setLayout(self.layout)
         # === CallX widget
-        self.callx_widget = CallXWidget(self, SERVER, USER, PASSWORD, camera_index = 0, debug_mode=True)
+        self.callx_widget = CallXWidget(self, config.SERVER, config.USER, config.PASSWORD, camera_index = 0, debug_mode=True)
         self.layout.addWidget(self.callx_widget.ocx)
         # connect to signals
         self.callx_widget.stateChanged.connect(self.onStateChanged)
@@ -164,30 +158,42 @@ class KioskWidget(QWidget):
     # ============================================================================================
     # Signals
     # ============================================================================================
-    def onStateChanged(self, prev_state, new_state):
-        if self.callx_widget.debug_mode:
-            print('Signal onStateChanged: "{}" -> "{}"'.format(prev_state, new_state))
+    def onStateChanged(self, callx, prev_state, new_state):
+        print('Signal onStateChanged: "{}" -> "{}"'.format(prev_state, new_state))
+        if new_state == State.Normal:
+            callx.ocx.getAbook()
 
     def onIncomingChatMessage(self, peerId, peerDn, message, time):
         pass
     # ============================================================================================
     def listEventsWidget_clicked(self, qmodelindex):
-        item = self.listEventsWidget.currentItem()
-        if item.text() in self.events_log:
-            txt = "\n\n".join(self.events_log[item.text()])
-            self.textWidget.setText(txt)
-        else:
-            self.textWidget.setText("")
+        self.updateItem()
 
     def onCallXEvent(self, name):
         self.events_log.setdefault(name, [name])
         items_list = self.listEventsWidget.findItems(name, Qt.MatchExactly)
         for item in items_list:
-            item.setCheckState(True) 
+            item.setCheckState(True)
+        # update    
+        self.updateItem()
 
     def onCallXEventArg(self, name, arg):
         self.events_log.setdefault(name, [])
         self.events_log[name].append(str(arg))
+        # update
+        self.updateItem()
+        
+    def updateItem(self):
+        item = self.listEventsWidget.currentItem()
+
+        if not item:
+            return
+
+        if item.text() in self.events_log:
+            txt = "\n\n".join(self.events_log[item.text()])
+            self.textWidget.setText(txt)
+        else:
+            self.textWidget.setText("")
 
 # end of class CallXWindow(QWidget)
 
@@ -200,7 +206,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     monitor = args.monitor
     # Check required variables
-    if (not SERVER) or (not USER) or (not PASSWORD):
+    if (not config.SERVER) or (not config.USER) or (not config.PASSWORD):
         print('Please set variables to connect and authorize. List variables: SERVER, USER, PASSWORD.')
         sys.exit()
     else:

@@ -19,7 +19,6 @@ TITLE = "CallX Python Example: Check CallX Events"
 EVENTS = [
 "OnXNotify",
 "OnXAfterStart",
-"OnServerConnected",
 "OnLogin",
 "OnInviteReceived",
 "OnXError",
